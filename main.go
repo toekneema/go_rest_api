@@ -8,7 +8,7 @@ import (
 	"github.com/gorilla/mux"
 )
 
-type Item struct {
+type Item struct { // essentially a class/object
 	UID   string  `json:"uid"`
 	Name  string  `json:"name"`
 	Desc  string  `json:"desc"`
@@ -22,17 +22,17 @@ func homePage(w http.ResponseWriter, r *http.Request) { // handles loading the h
 }
 
 func getInventory(w http.ResponseWriter, r *http.Request) { // handles the GET request
-	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Content-Type", "application/json") // just setting the header to use JSON format, w is used to print/write out to http response
 	fmt.Println("Function called: getInventory()")
 
-	json.NewEncoder(w).Encode(inventory)
+	json.NewEncoder(w).Encode(inventory) // this will write out the full inventory/DB to the http GET request
 }
 
 func createItem(w http.ResponseWriter, r *http.Request) { // handles the POST request
 	w.Header().Set("Content-Type", "application/json")
 
 	var item Item
-	_ = json.NewDecoder(r.Body).Decode(&item) //decode the passed in json object, dont care about the return value so we use underscore
+	_ = json.NewDecoder(r.Body).Decode(&item) //decode/deserialize the passed in json object into that {item} created in the line above, dont care about the return value so we use underscore
 	inventory = append(inventory, item)       //add to database
 
 	json.NewEncoder(w).Encode(item) //then encode the item back to json to display to webpage
@@ -63,8 +63,8 @@ func updateItem(w http.ResponseWriter, r *http.Request) {
 
 	params := mux.Vars(r)
 
-	_deleteItemAtUid(params["uid"])     // delete
-	inventory = append(inventory, item) // then create again lol
+	_deleteItemAtUid(params["uid"])     // call my custom delete method
+	inventory = append(inventory, item) // then add new item to list/arr
 
 	json.NewEncoder(w).Encode(inventory)
 }
@@ -73,7 +73,7 @@ func handleRequests() {
 	router := mux.NewRouter().StrictSlash(true)
 
 	router.HandleFunc("/", homePage).Methods("GET")
-	router.HandleFunc("/inventory", getInventory).Methods("GET")
+	router.HandleFunc("/inventory", getInventory).Methods("GET") // be careful, there is no ending slash, so don't include it when making http calls, otherwise it breaks
 	router.HandleFunc("/inventory", createItem).Methods("POST")
 	router.HandleFunc("/inventory/{uid}", deleteItem).Methods("DELETE")
 	router.HandleFunc("/inventory/{uid}", updateItem).Methods("PUT")
